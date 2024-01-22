@@ -93,8 +93,8 @@ end
 
 to recolor-patch[recruit?]  ;; patch procedure
   ;; give color to nest and food sources
-  if ticks mod 100 = 0[
-    create_pile]
+
+    create_pile
 
   ifelse nest?
   [ set pcolor violet ]
