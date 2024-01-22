@@ -2,8 +2,23 @@ globals [
   spawn-delay-counter
   colony-energy
   spawn-delay
-  food-pile-timer
+  food-pile-timer1
+  food-pile-timer2
+  food-pile-timer3
   food-pile-interval
+
+  total-food-1
+  total-food-2
+  total-food-3
+
+  spawn-pile1?
+  spawn-pile2?
+  spawn-pile3?
+
+  countdown-pile1?
+  countdown-pile2?
+  countdown-pile3?
+
 ]
 
 patches-own [
@@ -54,11 +69,24 @@ to setup
     ;]
   reset-ticks
   setup-patches
-  set colony-energy 100
+  set colony-energy maximum-pop
   set spawn-delay 2
-  set food-pile-timer 0
-  set food-pile-interval 1000  ; Set the interval for creating a new food pile
+  ifelse Scarce-Food
+  [ set food-pile-interval 750]
+  [ set food-pile-interval 500]
 
+  set food-pile-timer1 food-pile-interval
+  set food-pile-timer2 food-pile-interval
+  set food-pile-timer3 food-pile-interval
+    ; Set the interval for creating a new food pile
+
+  set spawn-pile1? false
+  set spawn-pile2? false
+  set spawn-pile3? false
+
+  set countdown-pile1? false
+  set countdown-pile2? false
+  set countdown-pile3? false
 
 end
 
@@ -78,23 +106,90 @@ end
 
 to setup-food  ;; patch procedure
   ;; setup food source one on the right
-  if (distancexy (0.6 * max-pxcor) 0) < 5
-  [ set food-source-number 1 ]
-  ;; setup food source two on the lower-left
-  if (distancexy (-0.6 * max-pxcor) (-0.6 * max-pycor)) < 5
-  [ set food-source-number 2 ]
-  ;; setup food source three on the upper-left
-  if (distancexy (-0.8 * max-pxcor) (0.8 * max-pycor)) < 5
-  [ set food-source-number 3 ]
-  ;; set "food" at sources to either 1 or 2, randomly
-  if food-source-number > 0
-  [ set food one-of [1 2 3 4 ] ]
+
+  ifelse Scarce-Food
+  [
+      ;if (distancexy (0.6 * max-pxcor) 0) < 3.25
+    ;[ set food-source-number 1 ]
+    ;; setup food source two on the lower-left
+    if (distancexy (-0.6 * max-pxcor) (-0.6 * max-pycor)) < 3.5
+    [ set food-source-number 2 ]
+    ;; setup food source three on the upper-left
+    if (distancexy (-0.8 * max-pxcor) (0.8 * max-pycor)) < 3.5
+    [ set food-source-number 3 ]
+    ;; set "food" at sources to either 1 or 2, randomly
+
+  ]
+  [
+        if (distancexy (0.6 * max-pxcor) 0) < 5
+    [ set food-source-number 1 ]
+    ;; setup food source two on the lower-left
+    if (distancexy (-0.6 * max-pxcor) (-0.6 * max-pycor)) < 5
+    [ set food-source-number 2 ]
+    ;; setup food source three on the upper-left
+    if (distancexy (-0.8 * max-pxcor) (0.8 * max-pycor)) < 5
+    [ set food-source-number 3 ]
+    ;; set "food" at sources to either 1 or 2, randomly
+  ]
+
+
+  create_pile_1
+
+  create_pile_2
+
+  create_pile_3
+
 end
+
+
+
 
 to recolor-patch[recruit?]  ;; patch procedure
   ;; give color to nest and food sources
 
-    create_pile
+
+  if ticks > 0 and Food-Growth[
+
+    if total-food-1 = 0 and spawn-pile1? = false
+      [
+        ifelse countdown-pile1? = false
+        [set countdown-pile1? true
+         set food-pile-timer1 ticks]
+        [
+          if ticks - food-pile-timer1 >= food-pile-interval
+          [ set food-pile-timer1 ticks
+            set spawn-pile1? true
+          ]
+        ]
+
+      ]
+     if total-food-2 = 0 and spawn-pile2? = false
+      [ ifelse countdown-pile2? = false
+        [set countdown-pile2? true
+         set food-pile-timer2 ticks]
+        [
+          if ticks - food-pile-timer2 >= food-pile-interval
+          [ set food-pile-timer2 ticks
+            set spawn-pile2? true
+          ]
+        ]
+      ]
+
+      if total-food-3 = 0 and spawn-pile3? = false
+      [  ifelse countdown-pile3? = false
+        [set countdown-pile3? true
+         set food-pile-timer3 ticks]
+        [
+          if ticks - food-pile-timer3 >= food-pile-interval
+          [ set food-pile-timer3 ticks
+            set spawn-pile3? true
+          ]
+        ]
+      ]
+
+     spawn-piles
+
+  ]
 
   ifelse nest?
   [ set pcolor violet ]
@@ -107,8 +202,9 @@ to recolor-patch[recruit?]  ;; patch procedure
     [ ifelse recruit?
       [set pcolor scale-color green chemical 0.1 5]
       [set pcolor scale-color blue chemical 0.1 5]
-
     ]
+
+
   ]
 
 end
@@ -116,11 +212,16 @@ end
 
 to spawn-turtles-until-max
 
-  let adjusted-spawn-delay max list 2 (10 - (population / (colony-energy + 1))) ; Growth rate
+  let population count turtles
+  ;let adjusted-spawn-delay max list 2 (20 - (population / (colony-energy + 1))) ; Growth rate
+  let population-factor population / (colony-energy + 1)
+  let delay (2 + (population-factor * 5))
 
-  ifelse population > colony-energy ; ???
-    [ set spawn-delay adjusted-spawn-delay ]
-    [ set spawn-delay 2]
+  ifelse population > colony-energy or colony-energy = 0 ; ???
+    [ set spawn-delay delay ]
+    [ set spawn-delay 1]
+
+  show (word "Delay:" spawn-delay)
 
   let current-turtles count turtles
   let turtles-to-spawn maximum-pop - current-turtles
@@ -165,23 +266,69 @@ end
 ;;; Create ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   Food Pile     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;
 
-to create_pile
-  ; Your code to create a new food pile goes here
-  let all_food_0? all? patches with [food-source-number = 1] [food = 0]
+to create_pile_1
 
-  if all_food_0?[
-    set food-pile-timer food-pile-timer + 1
-      if food-pile-timer = food-pile-interval[
-      ask patches with [ food-source-number = 1]
-    [
-        set food one-of [1 2 3 4 ]
+     if food-source-number = 1
+  [ set food one-of [1 2 3 4 ]
+    set total-food-1 total-food-1 + food ]
 
-    ]
-       set food-pile-timer  0
-    ]
-  ]
+
 
 end
+
+to create_pile_2
+
+  if food-source-number = 2
+  [ set food one-of [1 2 3 4 ]
+    set total-food-2 total-food-2 + food ]
+
+
+
+end
+
+to create_pile_3
+
+  if food-source-number = 3
+  [ set food one-of [1 2 3 4 ]
+    set total-food-3 total-food-3 + food ]
+end
+
+
+to spawn-piles
+
+   if spawn-pile1? and not Scarce-Food[
+      ;set food-pile-timer1 ticks
+      ifelse ticks - food-pile-timer1 < 10
+      [create_pile_1]
+      [
+       set spawn-pile1? false
+       set total-food-1 sum [food] of patches with [pcolor = cyan]
+       set countdown-pile1? false
+      ]
+    ]
+    if spawn-pile2?[
+      ;set food-pile-timer1 ticks
+      ifelse ticks - food-pile-timer2 < 10
+      [create_pile_2]
+      [
+       set spawn-pile2? false
+       set total-food-2 sum [food] of patches with [pcolor = sky]
+       set countdown-pile2? false
+      ]
+    ]
+    if spawn-pile3?[
+      ;set food-pile-timer1 ticks
+      ifelse ticks - food-pile-timer3 < 10
+      [create_pile_3]
+      [
+       set spawn-pile3? false
+       set total-food-3 sum [food] of patches with [pcolor = blue]
+       set countdown-pile3? false
+      ]
+    ]
+
+end
+
 ;;;;;;;;;;;;;;;;;;;;;
 ;;; Go procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;    GROUP     ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
 ;;;;;;;;;;;;;;;;;;;;;
@@ -781,6 +928,9 @@ to carry-food
   [
     set food-carried food
   ]
+  if food-source-number = 1 [set total-food-1 total-food-1 - food-carried]
+  if food-source-number = 2 [set total-food-2 total-food-2 - food-carried]
+  if food-source-number = 3 [set total-food-3 total-food-3 - food-carried]
 
 end
 
@@ -788,8 +938,8 @@ to update-ant-stats
 
   ask turtles
   [ ;if population > colo
-    ifelse population > colony-energy * 2 ; starving?
-    [set age age - 2]
+    ifelse count turtles > colony-energy * 2 ; starving?
+    [set age age - 1]
     [set age age - 1]
     if age <= 20
     [ set color grey
@@ -855,7 +1005,7 @@ diffusion-rate
 diffusion-rate
 0.0
 99.0
-10.0
+75.0
 1.0
 1
 NIL
@@ -870,7 +1020,7 @@ evaporation-rate
 evaporation-rate
 0.0
 99.0
-80.0
+10.0
 1.0
 1
 NIL
@@ -892,21 +1042,6 @@ NIL
 NIL
 NIL
 0
-
-SLIDER
-31
-36
-221
-69
-population
-population
-0.0
-200.0
-21.0
-1.0
-1
-NIL
-HORIZONTAL
 
 PLOT
 5
@@ -946,15 +1081,15 @@ NIL
 0
 
 SLIDER
-41
-490
-213
-523
+38
+590
+210
+623
 max_group
 max_group
 1
 20
-10.0
+11.0
 1
 1
 NIL
@@ -1017,7 +1152,7 @@ SWITCH
 578
 death-mechanics
 death-mechanics
-1
+0
 1
 -1000
 
@@ -1061,19 +1196,85 @@ colony-energy
 11
 
 SLIDER
-345
-80
-517
-113
+332
+101
+504
+134
 maximum-pop
 maximum-pop
 0
 200
-99.0
+200.0
 1
 1
 NIL
 HORIZONTAL
+
+MONITOR
+6
+477
+86
+522
+NIL
+total-food-1
+17
+1
+11
+
+MONITOR
+89
+478
+169
+523
+NIL
+total-food-2
+17
+1
+11
+
+MONITOR
+171
+478
+251
+523
+NIL
+total-food-3
+17
+1
+11
+
+MONITOR
+400
+589
+561
+634
+NIL
+count patches with [nest?]
+17
+1
+11
+
+SWITCH
+168
+657
+293
+690
+Scarce-Food
+Scarce-Food
+0
+1
+-1000
+
+SWITCH
+165
+694
+293
+727
+Food-Growth
+Food-Growth
+1
+1
+-1000
 
 @#$#@#$#@
 ## WHAT IS IT?
