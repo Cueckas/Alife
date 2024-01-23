@@ -375,7 +375,7 @@ to spawn-turtles-until-max
             set speed 1
             set success-runs 0
             set foodsource patch 0 0
-            set age 300
+            set age 250
             ; ... additional attributes
           ]
           set spawn-delay-counter 0
@@ -1266,10 +1266,10 @@ ticks
 30.0
 
 BUTTON
-84
-71
-164
-104
+333
+116
+441
+149
 NIL
 setup
 NIL
@@ -1283,41 +1283,41 @@ NIL
 1
 
 SLIDER
-31
-106
-221
-139
+16
+609
+206
+642
 diffusion-rate
 diffusion-rate
 0.0
 99.0
-50.0
+10.0
 1.0
 1
 NIL
 HORIZONTAL
 
 SLIDER
-31
-141
-221
-174
+16
+664
+206
+697
 evaporation-rate
 evaporation-rate
 0.0
 99.0
-15.0
+80.0
 1.0
 1
 NIL
 HORIZONTAL
 
 BUTTON
-409
-514
-489
-547
-NIL
+170
+144
+298
+177
+Start Mass Strat
 go_mass
 T
 1
@@ -1330,10 +1330,10 @@ NIL
 0
 
 PLOT
-5
-197
-248
-476
+13
+198
+261
+510
 Food in each pile
 time
 food
@@ -1350,11 +1350,11 @@ PENS
 "food-in-pile3" 1.0 0 -13345367 true "" "plotxy ticks sum [food] of patches with [pcolor = blue]"
 
 BUTTON
-276
-516
-370
-549
-NIL
+18
+145
+146
+178
+Start Tandem Strat
 go_tandem
 T
 1
@@ -1367,10 +1367,10 @@ NIL
 0
 
 SLIDER
-38
-590
-210
-623
+14
+771
+204
+804
 max_group
 max_group
 1
@@ -1382,11 +1382,11 @@ NIL
 HORIZONTAL
 
 BUTTON
-279
-448
-364
-481
-NIL
+18
+89
+145
+122
+Start Group Strat
 go_group
 T
 1
@@ -1399,10 +1399,10 @@ NIL
 0
 
 SLIDER
-1364
-106
-1536
-139
+1290
+140
+1462
+173
 polymorphism
 polymorphism
 0
@@ -1414,10 +1414,10 @@ NIL
 HORIZONTAL
 
 PLOT
-303
-233
-499
-383
+273
+380
+526
+508
 Population over time
 time
 population
@@ -1432,10 +1432,10 @@ PENS
 "default" 1.0 0 -16777216 true "" "plot count turtles"
 
 SWITCH
-41
-545
-190
-578
+234
+719
+421
+752
 death-mechanics
 death-mechanics
 1
@@ -1443,11 +1443,11 @@ death-mechanics
 -1000
 
 BUTTON
-399
-449
-492
-482
-NIL
+173
+89
+293
+122
+Start Solitary Strat
 go_solitary
 T
 1
@@ -1460,10 +1460,10 @@ NIL
 0
 
 MONITOR
-302
-383
-499
-428
+275
+515
+525
+560
 Population
 count turtles
 17
@@ -1471,10 +1471,10 @@ count turtles
 11
 
 MONITOR
-266
-584
-359
-629
+276
+328
+526
+373
 NIL
 colony-energy
 17
@@ -1482,10 +1482,10 @@ colony-energy
 11
 
 SLIDER
-332
-101
-504
-134
+16
+715
+206
+748
 maximum-pop
 maximum-pop
 0
@@ -1497,10 +1497,10 @@ NIL
 HORIZONTAL
 
 MONITOR
-6
-477
-86
-522
+13
+517
+93
+562
 NIL
 total-food-1
 17
@@ -1508,10 +1508,10 @@ total-food-1
 11
 
 MONITOR
-89
-478
-169
-523
+96
+518
+176
+563
 NIL
 total-food-2
 17
@@ -1519,32 +1519,21 @@ total-food-2
 11
 
 MONITOR
-171
-478
-251
-523
+178
+518
+260
+563
 NIL
 total-food-3
 17
 1
 11
 
-MONITOR
-366
-586
-527
-631
-NIL
-count patches with [nest?]
-17
-1
-11
-
 SWITCH
-168
-657
-293
-690
+238
+609
+421
+642
 Scarce-Food
 Scarce-Food
 0
@@ -1552,10 +1541,10 @@ Scarce-Food
 -1000
 
 SWITCH
-165
-694
-293
-727
+236
+662
+421
+695
 Food-Growth
 Food-Growth
 1
@@ -1563,11 +1552,11 @@ Food-Growth
 -1000
 
 BUTTON
-1351
-292
-1441
-325
-NIL
+1290
+300
+1432
+333
+Setup Polymorphism
 setup-poly
 NIL
 1
@@ -1580,11 +1569,11 @@ NIL
 1
 
 BUTTON
-1470
-293
-1558
-326
-NIL
+1458
+299
+1596
+332
+Start Polymorphism
 start_poly
 T
 1
@@ -1597,10 +1586,10 @@ NIL
 0
 
 MONITOR
-1344
-340
-1448
-385
+1286
+346
+1445
+391
 NIL
 colony-energy-1
 17
@@ -1608,10 +1597,10 @@ colony-energy-1
 11
 
 MONITOR
-1460
-340
-1564
-385
+1286
+401
+1444
+446
 NIL
 colony-energy-2
 17
@@ -1627,6 +1616,44 @@ This is a setup to solely test polymorphism on the standard model. Do not use th
 15
 14.0
 0
+
+TEXTBOX
+21
+47
+352
+92
+Change Strategie to observe different behaviours
+12
+14.0
+1
+
+TEXTBOX
+20
+576
+470
+618
+You can also change these parameters to apply conditions to the colony
+12
+14.0
+1
+
+PLOT
+275
+197
+528
+323
+Colony Energy over time
+NIL
+NIL
+0.0
+10.0
+0.0
+10.0
+true
+false
+"" ""
+PENS
+"default" 1.0 0 -2064490 true "" "plot colony-energy"
 
 @#$#@#$#@
 ## WHAT IS IT?
