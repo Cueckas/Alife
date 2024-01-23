@@ -374,7 +374,7 @@ to spawn-turtles-until-max
             set followers 0
             set speed 1
             set success-runs 0
-            set foodsource patch 0 0
+            ;set foodsource patch 0 0
             set age 250
             ; ... additional attributes
           ]
@@ -631,7 +631,7 @@ to go_group
         if color = red
         [ look-for-food-group
           ifelse leader?  = true
-          [set speed 0.70]
+          [set speed 0.90]
           [if following? = false and nest? = false
             [set speed 1]
           ]
@@ -647,11 +647,16 @@ to go_group
           [set speed 1]
          set recruit_chems? true ]
         if color = green
-        [follow-leader-group
+        [
           if is-turtle? leader
           [  if [color] of leader != blue
-             [set speed 0.68 - ((line-number + [followers] of leader) / (10 + max_group))]
+              [set speed 0.88 - ((line-number + [followers] of leader) / (10 + max_group))]
+              set foodsource [foodsource] of leader
           ]
+          ifelse foodsource != 0
+            [follow-leader-group]
+            [set color red
+             set following? false]
         ]
 
         if color = grey [
@@ -689,14 +694,15 @@ to recruit-ants  ;; turtle procedure
       [
         face myself
         if nest?
-        [set speed 0.65]
-        set color green
+        [set speed 0.75]
+
         set leader? false
         set leader myself
         set following? true
         ;set foodsource [foodsource] of myself
         ask myself [set followers followers + 1]
         set line-number [followers] of myself
+        set color green
         stop
       ]
    ]
@@ -717,19 +723,17 @@ end
 
 
 to follow-leader-group
-  set following? true
 
   let rand random 100
-
   if food > 0
-  [look-for-food]
+  [look-for-food-group]
 
-  ifelse is-turtle? leader
-  [ if [color] of leader = orange + 1 or [leader?] of leader = false[
-    set foodsource [foodsource] of leader
-    face [foodsource] of leader  ]
+  ifelse is-turtle? leader and following? = true
+  [ if [color] of leader = orange + 1 and [leader?] of leader = false [
+    set following? false
+    face foodsource ]
 
-    if ((rand <= ([followers] of leader + line-number)) and distance leader > 5)[
+    if ((rand <= ([followers] of leader + line-number)) and distance leader > 5 and following? = true)[
     ask leader[
       set followers followers - 1
     ]
@@ -737,21 +741,16 @@ to follow-leader-group
     set following? false
     set line-number 0
     ]
-
-
-    if leader != nobody and is-turtle? leader
+    if leader != nobody and is-turtle? leader and following? = true
     [face leader]
     if foodsource = [foodsource] of leader and [leader?] of leader = false and [color] of leader != blue
     [face foodsource]
 
-
   ]
-  [ set color red ]
-
+  [ face foodsource ]
 
   if patch-here = foodsource[
-
-    if is-turtle? leader
+    if is-turtle? leader and leader != nobody
     [ ask leader[
       set followers followers - 1]
     ]
@@ -761,10 +760,6 @@ to follow-leader-group
     if patch-ahead 2 != nobody
       [ face patch-ahead 2]
   ]
-
-
-
-
 
 end
 
@@ -796,18 +791,25 @@ to look-for-food-group  ;; turtle procedure
     ]
     stop
    ]
-  [
-    let selected-turtle one-of other turtles in-radius 2.5 with [color = red and leader? = true]
+  [ ifelse food-carried > 0
+    [ ;set color orange + 1
+      set speed 1
+      set foodsource patch 0 0
+      set leader? false
 
-    if selected-turtle != nobody and is-turtle? selected-turtle
-    [
-      face selected-turtle
-      ;set speed 0.2
-      set color green
-      set leader selected-turtle
-      set following? true
-      ask selected-turtle [set followers followers + 1]
-      set foodsource [foodsource] of leader
+      set color orange + 1 ]
+    [ let selected-turtle one-of other turtles in-radius 2.5 with [color = red and leader? = true]
+      if selected-turtle != nobody and is-turtle? selected-turtle
+      [
+        face selected-turtle
+        set leader selected-turtle
+        set following? true
+        ask selected-turtle [set followers followers + 1]
+        set foodsource [foodsource] of leader
+        ;set speed 0.2
+        set color green
+
+      ]
     ]
   ]
 
@@ -827,7 +829,7 @@ to return-to-nest-group  ;; turtle procedure
     set colony-energy colony-energy + food-carried
     set food-carried 0
     let rnd random 100
-    ifelse rnd > 45 [
+    ifelse rnd > 40 and foodsource != nobody[
        set color blue
        set initial-time ticks
        recruit-ants
@@ -893,7 +895,7 @@ to follow-leader
   set following? true
   set speed 0.45
 
-  if is-turtle? leader[
+  ifelse is-turtle? leader[
 
     if [color] of leader = orange + 1 or [leader?] of leader = false[
       ask leader[
@@ -906,6 +908,7 @@ to follow-leader
     ]
     face leader
   ]
+  [ set color red ]
 
 end
 
@@ -915,7 +918,7 @@ to return-to-nest-tandem  ;; turtle procedure
     set colony-energy colony-energy + food-carried
     set food-carried 0
     let rnd random 10
-    ifelse rnd > 2 [
+    ifelse rnd > 3 [
        set color blue
        set initial-time ticks
        find-closest-ant
@@ -1227,7 +1230,7 @@ to update-ant-stats
     ifelse count turtles > colony-energy * 2 ; starving?
     [set age age - 1]
     [set age age - 1]
-    if age <= 20
+    if age <= 20 and food-carried = 0
     [ set color grey
       set leader? false
       set followers 0
@@ -1291,7 +1294,7 @@ diffusion-rate
 diffusion-rate
 0.0
 99.0
-0.0
+10.0
 1.0
 1
 NIL
@@ -1306,7 +1309,7 @@ evaporation-rate
 evaporation-rate
 0.0
 99.0
-100.0
+80.0
 1.0
 1
 NIL
@@ -1536,7 +1539,7 @@ SWITCH
 642
 Scarce-Food
 Scarce-Food
-0
+1
 1
 -1000
 
@@ -1547,7 +1550,7 @@ SWITCH
 695
 Food-Growth
 Food-Growth
-0
+1
 1
 -1000
 
