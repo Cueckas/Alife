@@ -19,6 +19,25 @@ globals [
   countdown-pile2?
   countdown-pile3?
 
+
+  ;for poly only
+  colony-energy-1
+  colony-energy-2
+
+]
+
+breed [ants1 ant1]
+breed [ants2 ant2]
+
+
+ants1-own[
+ health points
+ fighting?
+]
+
+ants2-own[
+ health-points
+ fighting?
 ]
 
 patches-own [
@@ -27,6 +46,16 @@ patches-own [
   nest?                ;; true on nest patches, false elsewhere
   nest-scent           ;; number that is higher closer to the nest
   food-source-number   ;; number (1, 2, or 3) to identify the food sources
+
+  ;FOR POLYMORPHISM TEST
+
+  nest1?
+  nest2?
+  nest-scent1
+  nest-scent2
+  chemical1
+  chemical2
+
 ]
 
 turtles-own[
@@ -52,7 +81,107 @@ turtles-own[
 ;;; Setup procedures ;;;
 ;;;;;;;;;;;;;;;;;;;;;;;;
 
+to setup-poly
+  clear-all
+  set-default-shape turtles "ant"
+
+  ask patch 0 25 [
+  sprout-ants1 100 [
+    ;set health-points 2
+    set size ifelse-value (random-float 100 < polymorphism) [3] [2]
+    if size = 3
+      [ set colony-energy-1 colony-energy-1 - 1
+        ;set health-points 4]
+      ]
+    set color red
+  ]
+]
+
+ask patch 0 -25 [
+  sprout-ants2 100 [
+    ;set health-points 2
+    set size 2
+    set color blue
+  ]
+]
+
+  set spawn-delay-counter 0
+  reset-ticks
+  setup-patches-for-poly
+  set colony-energy maximum-pop
+
+end
+
+
+to setup-patches-for-poly
+   ask patches
+  [ setup-nests-poly
+    setup-food-poly
+    recolor-patch-poly
+  ]
+
+end
+
+
+to setup-nests-poly
+  ;; set nest? variable to true inside the nest, false elsewhere
+  set nest1? (distancexy 0 25) < 5
+  ;; spread a nest-scent over the whole world -- stronger near the nest
+  set nest-scent1 200 - distancexy 0 25
+
+  set nest2? (distancexy 0 -25) < 5
+  ;; spread a nest-scent over the whole world -- stronger near the nest
+  set nest-scent2 200 - distancexy 0 -25
+
+end
+
+to setup-food-poly
+
+  if (distancexy 0 0) < 5
+  [set food-source-number 1]
+
+   if (distancexy 25 0) < 5
+  [set food-source-number 2]
+
+   if (distancexy -25 0) < 5
+  [set food-source-number 3]
+
+  if food-source-number = 1
+  [ set food one-of [1 2 3 4 ]
+    set total-food-1 total-food-1 + food ]
+
+  if food-source-number = 2
+  [ set food one-of [1 2 3 4 ]
+    set total-food-2 total-food-2 + food ]
+
+  if food-source-number = 3
+  [ set food one-of [1 2 3 4 ]
+    set total-food-3 total-food-3 + food ]
+
+end
+
+to recolor-patch-poly
+
+  ifelse nest1?
+  [set pcolor red + 3]
+  [ ifelse nest2? [set pcolor blue + 3]
+    [ ifelse food > 0
+    [ if food-source-number = 1 [ set pcolor lime ]
+      if food-source-number = 2 [ set pcolor lime]
+      if food-source-number = 3 [ set pcolor lime]
+      if food-source-number = 4 [ set pcolor lime]]
+    ;; scale color to show chemical concentration
+    [ ifelse chemical1 < chemical2
+        [ set pcolor scale-color turquoise chemical2 0.1 5  ]
+        [ set pcolor scale-color yellow chemical1 0.1 5 ]
+      ]
+    ]
+  ]
+
+end
+
 to setup
+
   clear-all
   set-default-shape turtles "ant"
   set spawn-delay-counter 0
@@ -66,7 +195,7 @@ to setup
     ;set success-runs 0
     ;set foodsource patch 0 0
     ;set age 250
-    ;]
+  ;]
   reset-ticks
   setup-patches
   set colony-energy maximum-pop
@@ -143,7 +272,6 @@ end
 
 
 
-
 to recolor-patch[recruit?]  ;; patch procedure
   ;; give color to nest and food sources
 
@@ -203,8 +331,6 @@ to recolor-patch[recruit?]  ;; patch procedure
       [set pcolor scale-color green chemical 0.1 5]
       [set pcolor scale-color blue chemical 0.1 5]
     ]
-
-
   ]
 
 end
@@ -327,6 +453,166 @@ to spawn-piles
       ]
     ]
 
+end
+
+;;;;;;;;;;;;;;;;;;;;;
+;;; Poly procedures ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;   POLY TEST    ;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;;
+;;;;;;;;;;;;;;;;;;;;;
+
+
+
+to start_poly  ;; forever button
+  ;spawn-turtles-until-max
+  ask turtles
+  [ if who >= ticks [  ] ;; DONT delay initial departure
+    set speed 1
+    ifelse color = red or color = blue
+    [ look-for-food-poly ] ;; not carrying food? look for it]
+    [ if color != grey
+      [return-to-nest-poly]
+    ] ;; carrying food? take it back to nest
+
+    if color = grey [
+      set speed 0.2
+    ]
+    wiggle
+    fd 1 * (speed - speed-size-penalty)
+  ]
+
+  diffuse chemical1 (diffusion-rate / 100)
+  diffuse chemical2 (diffusion-rate / 100)
+
+  ask patches
+  [ set chemical1 chemical1 * (100 - evaporation-rate) / 100  ;; slowly evaporate chemical
+    set chemical2 chemical2 * (100 - evaporation-rate) / 100
+    recolor-patch-poly]
+  tick
+  if death-mechanics
+   [update-ant-stats]
+
+end
+
+to fight-ants
+
+
+end
+
+to return-to-nest-poly  ;; turtle procedure
+
+  ifelse breed = ants1[
+    ifelse nest1?
+  [ ;; drop food and head out again
+    set colony-energy-1 colony-energy-1 + food-carried
+    set food-carried 0
+    set color red
+    rt 180 ]
+  [ set chemical1 chemical1 + 60  ;; drop some chemical
+    uphill-nest-scent1 ]
+
+  ]
+  [
+    ifelse nest2?
+    [ ;; drop food and head out again
+    set colony-energy-2 colony-energy-2 + food-carried
+    set food-carried 0
+    set color blue
+    rt 180 ]
+    [ set chemical2 chemical2 + 60  ;; drop some chemical
+    uphill-nest-scent2 ]         ;; head toward the greatest value of nest-scent
+
+  ]
+end
+
+to look-for-food-poly  ;; turtle procedure
+
+  if food > 0
+  [
+    carry-food
+    set food food - food-carried
+    rt 180
+ ifelse breed = ants1
+    [set color orange + 1]
+    [set color cyan + 1]
+
+    stop ]
+  ;; go in the direction where the chemical smell is strongest
+
+  ifelse breed = ants1 [
+    if (chemical1 >= 0.05) and (chemical1 < 2)
+    [ uphill-chemical1 ]
+  ]
+  [if (chemical2 >= 0.05) and (chemical2 < 2)
+    [ uphill-chemical2 ]]
+
+end
+
+
+
+to uphill-nest-scent1  ;; turtle procedure
+  let scent-ahead nest-scent-at-angle1   0
+  let scent-right nest-scent-at-angle1  45
+  let scent-left  nest-scent-at-angle1 -45
+  if (scent-right > scent-ahead) or (scent-left > scent-ahead)
+  [ ifelse scent-right > scent-left
+    [ rt 45 ]
+    [ lt 45 ] ]
+end
+
+to uphill-nest-scent2  ;; turtle procedure
+  let scent-ahead nest-scent-at-angle2   0
+  let scent-right nest-scent-at-angle2  45
+  let scent-left  nest-scent-at-angle2 -45
+  if (scent-right > scent-ahead) or (scent-left > scent-ahead)
+  [ ifelse scent-right > scent-left
+    [ rt 45 ]
+    [ lt 45 ] ]
+end
+
+to-report nest-scent-at-angle1 [angle]
+  let p patch-right-and-ahead angle 1
+  if p = nobody [ report 0 ]
+  report [nest-scent1] of p
+end
+
+to-report nest-scent-at-angle2 [angle]
+  let p patch-right-and-ahead angle 1
+  if p = nobody [ report 0 ]
+  report [nest-scent2] of p
+end
+
+
+to uphill-chemical1;; turtle procedure
+  let scent-ahead chemical-scent-at-angle1   0
+  let scent-right chemical-scent-at-angle1  45
+  let scent-left  chemical-scent-at-angle1 -45
+  if (scent-right > scent-ahead) or (scent-left > scent-ahead)
+  [ ifelse scent-right > scent-left
+    [ rt 45 ]
+    [ lt 45 ] ]
+end
+
+
+to-report chemical-scent-at-angle1 [angle]
+  let p patch-right-and-ahead angle 1
+  if p = nobody [ report 0 ]
+  report [chemical1] of p
+end
+
+to uphill-chemical2 ;; turtle procedure
+  let scent-ahead chemical-scent-at-angle2   0
+  let scent-right chemical-scent-at-angle2  45
+  let scent-left  chemical-scent-at-angle2 -45
+  if (scent-right > scent-ahead) or (scent-left > scent-ahead)
+  [ ifelse scent-right > scent-left
+    [ rt 45 ]
+    [ lt 45 ] ]
+end
+
+
+to-report chemical-scent-at-angle2 [angle]
+  let p patch-right-and-ahead angle 1
+  if p = nobody [ report 0 ]
+  report [chemical2] of p
 end
 
 ;;;;;;;;;;;;;;;;;;;;;
@@ -954,12 +1240,12 @@ end
 @#$#@#$#@
 GRAPHICS-WINDOW
 536
-25
-1329
-819
+65
+1250
+780
 -1
 -1
-11.06
+9.944
 1
 10
 1
@@ -978,6 +1264,16 @@ GRAPHICS-WINDOW
 1
 ticks
 30.0
+
+TEXTBOX
+0
+0
+0
+0
+NIL
+11
+0.0
+1
 
 BUTTON
 84
@@ -1005,7 +1301,7 @@ diffusion-rate
 diffusion-rate
 0.0
 99.0
-75.0
+50.0
 1.0
 1
 NIL
@@ -1020,7 +1316,7 @@ evaporation-rate
 evaporation-rate
 0.0
 99.0
-10.0
+15.0
 1.0
 1
 NIL
@@ -1113,15 +1409,15 @@ NIL
 0
 
 SLIDER
-331
-144
-503
-177
+1364
+106
+1536
+139
 polymorphism
 polymorphism
 0
 100
-50.0
+15.0
 1
 1
 NIL
@@ -1130,7 +1426,7 @@ HORIZONTAL
 PLOT
 303
 233
-503
+499
 383
 Population over time
 time
@@ -1152,7 +1448,7 @@ SWITCH
 578
 death-mechanics
 death-mechanics
-0
+1
 1
 -1000
 
@@ -1244,10 +1540,10 @@ total-food-3
 11
 
 MONITOR
-400
-589
-561
-634
+366
+586
+527
+631
 NIL
 count patches with [nest?]
 17
@@ -1275,6 +1571,72 @@ Food-Growth
 1
 1
 -1000
+
+BUTTON
+1351
+292
+1441
+325
+NIL
+setup-poly
+NIL
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+1
+
+BUTTON
+1470
+293
+1558
+326
+NIL
+start_poly
+T
+1
+T
+OBSERVER
+NIL
+NIL
+NIL
+NIL
+0
+
+MONITOR
+1344
+340
+1448
+385
+NIL
+colony-energy-1
+17
+1
+11
+
+MONITOR
+1460
+340
+1564
+385
+NIL
+colony-energy-2
+17
+1
+11
+
+TEXTBOX
+1289
+189
+1611
+286
+This is a setup to solely test polymorphism on the standard model. Do not use the buttons below in conjunction with the buttons in the left side! (The polymorphism slider can be used with the rest)
+15
+14.0
+0
 
 @#$#@#$#@
 ## WHAT IS IT?
