@@ -1227,7 +1227,7 @@ to update-ant-stats
     ifelse count turtles > colony-energy * 2 ; starving?
     [set age age - 1]
     [set age age - 1]
-    if age <= 20 and food-carried = 0
+    if age <= 20
     [ set color grey
       set leader? false
       set followers 0
@@ -1536,7 +1536,7 @@ SWITCH
 642
 Scarce-Food
 Scarce-Food
-1
+0
 1
 -1000
 
@@ -1547,7 +1547,7 @@ SWITCH
 695
 Food-Growth
 Food-Growth
-1
+0
 1
 -1000
 
