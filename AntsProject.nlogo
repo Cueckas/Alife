@@ -108,7 +108,7 @@ ask patch 0 -25 [
   set spawn-delay-counter 0
   reset-ticks
   setup-patches-for-poly
-  set colony-energy maximum-pop
+  set colony-energy maximum-pop * 1.5
 
 end
 
@@ -991,7 +991,7 @@ to look-for-food-tandem  ;; turtle procedure
      [set success-runs success-runs + 1]
       set color orange + 1     ;; pick up food
       set foodsource patch-here
-      set fake-foodsource random-patch-in-radius foodsource 20
+      set fake-foodsource random-patch-in-radius foodsource 10
       will-get-lost
       ;show ( word "Will get lost: " lost?)
       if lost? = true
@@ -1274,7 +1274,7 @@ BUTTON
 79
 432
 112
-NIL
+Setup
 setup
 NIL
 1
@@ -1411,7 +1411,7 @@ polymorphism
 polymorphism
 0
 100
-15.0
+50.0
 1
 1
 NIL
@@ -1442,7 +1442,7 @@ SWITCH
 752
 death-mechanics
 death-mechanics
-1
+0
 1
 -1000
 
@@ -1494,7 +1494,7 @@ maximum-pop
 maximum-pop
 0
 200
-200.0
+150.0
 1
 1
 NIL
@@ -1540,7 +1540,7 @@ SWITCH
 642
 Scarce-Food
 Scarce-Food
-0
+1
 1
 -1000
 
@@ -1592,9 +1592,9 @@ NIL
 MONITOR
 1286
 346
-1445
+1447
 391
-NIL
+Polymorphic colony energy
 colony-energy-1
 17
 1
@@ -1603,7 +1603,7 @@ colony-energy-1
 MONITOR
 1286
 401
-1444
+1449
 446
 NIL
 colony-energy-2
@@ -1660,39 +1660,43 @@ PENS
 "default" 1.0 0 -2064490 true "" "plot colony-energy"
 
 @#$#@#$#@
+# MODIFIED OF VERSION OF THE ORIGINAL MODEL
+
+This modified version was made for a university project of Artificial  by 
+
+Inês Gil 62567
+Ivo Estrela 51051
+
+Faculdade de Ciencias da Universidade de Lisboa 
+
+ 
+
 ## WHAT IS IT?
 
-In this project, a colony of ants forages for food. Though each ant follows a set of simple rules, the colony as a whole acts in a sophisticated way.
+In this project, a colony of ants forages for food. Though each ant follows a set of simple rules, the colony as a whole acts in a sophisticated way. We have a set of new strategies and parameters that complete the model for testing ants in this simulation.
 
 ## HOW IT WORKS
 
-When an ant finds a piece of food, it carries the food back to the nest, dropping a chemical as it moves. When other ants "sniff" the chemical, they follow the chemical toward the food. As more ants carry food to the nest, they reinforce the chemical trail.
+When an ant finds a piece of food, it carries the food back to the nest, depending on the strategy turn on, the ant will execute different recruitment behaviours.
 
 ## HOW TO USE IT
 
-Click the SETUP button to set up the ant nest (in violet, at center) and three piles of food. Click the GO button to start the simulation. The chemical is shown in a green-to-white gradient.
+Click the SETUP button to set up the ant nest (in violet, at center) piles of food. Click the Start buttons to start the simulation.
 
 The EVAPORATION-RATE slider controls the evaporation rate of the chemical. The DIFFUSION-RATE slider controls the diffusion rate of the chemical.
 
-If you want to change the number of ants, move the POPULATION slider before pressing SETUP.
+The maximum population slide changes the maximum number of ants a colony can have at the same time
 
-## THINGS TO NOTICE
+Scarce Food switch determines a different food location and size
 
-The ant colony generally exploits the food source in order, starting with the food closest to the nest, and finishing with the food most distant from the nest. It is more difficult for the ants to form a stable trail to the more distant food, since the chemical trail has more time to evaporate and diffuse before being reinforced.
+Food Growth determines if the food grows after getting depleted, when the Scarce Food switch is activated there is more time for food to regrow
 
-Once the colony finishes collecting the closest food, the chemical trail to that food naturally disappears, freeing up ants to help collect the other food sources. The more distant food sources require a larger "critical number" of ants to form a stable trail.
+The polymorphism slider decides the percentage of ants with differente sizes
 
-The consumption of the food is shown in a plot.  The line colors in the plot match the colors of the food piles.
+Death-mechanics switch determines if ants die of old age. It stays off during polymorfic test.
 
-## EXTENDING THE MODEL
+The Polymorphism test is a standalone test for competing ants, and the buttons on the right should not be mixed with this setup
 
-Try different placements for the food sources. What happens if two food sources are equidistant from the nest? When that happens in the real world, ant colonies typically exploit one source then the other (not at the same time).
-
-In this project, the ants use a "trick" to find their way back to the nest: they follow the "nest scent." Real ants use a variety of different approaches to find their way back to the nest. Try to implement some alternative strategies.
-
-The ants only respond to chemical levels between 0.05 and 2.  The lower limit is used so the ants aren't infinitely sensitive.  Try removing the upper limit.  What happens?  Why?
-
-In the `uphill-chemical` procedure, the ant "follows the gradient" of the chemical. That is, it "sniffs" in three directions, then turns in the direction where the chemical is strongest. You might want to try variants of the `uphill-chemical` procedure, changing the number and placement of "ant sniffs."
 
 ## NETLOGO FEATURES
 
