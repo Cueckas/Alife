@@ -463,6 +463,7 @@ end
 
 to start_poly  ;; forever button
   ;spawn-turtles-until-max
+
   ask turtles
   [ if who >= ticks [  ] ;; DONT delay initial departure
     set speed 1
@@ -631,7 +632,7 @@ to go_group
         if color = red
         [ look-for-food-group
           ifelse leader?  = true
-          [set speed 0.]
+          [set speed 0.85]
           [if following? = false and nest? = false
             [set speed 1]
           ]
@@ -650,7 +651,7 @@ to go_group
         [
           if is-turtle? leader
           [  if [color] of leader != blue
-              [set speed 0.88 - ((line-number + [followers] of leader) / (10 + max_group))]
+              [set speed 0.83 - ((line-number + [followers] of leader) / (10 + max_group))]
               set foodsource [foodsource] of leader
           ]
           ifelse foodsource != 0
@@ -869,9 +870,9 @@ to go_tandem
         [follow-leader]
         wiggle
         ifelse leader? = true
-        [ set speed 0.5 ]
+        [ set speed 0.6 ]
         [ ifelse following? = true
-          [set speed  0.45]
+          [set speed  0.55]
           [set speed 1]
         ]
 
@@ -917,8 +918,8 @@ to return-to-nest-tandem  ;; turtle procedure
   [ ;; drop food and head out again
     set colony-energy colony-energy + food-carried
     set food-carried 0
-    let rnd random 10
-    ifelse rnd > 3 [
+    let rnd random 100
+    ifelse rnd > 30 [
        set color blue
        set initial-time ticks
        find-closest-ant
@@ -1045,7 +1046,7 @@ end
 
 to go_mass  ;; forever button
   spawn-turtles-until-max
-  set diffusion-rate 75
+  set diffusion-rate 60
   set evaporation-rate 10
   ask turtles
   [ if who >= ticks [ stop ] ;; delay initial departure
@@ -1294,7 +1295,7 @@ diffusion-rate
 diffusion-rate
 0.0
 99.0
-10.0
+60.0
 1.0
 1
 NIL
@@ -1309,7 +1310,7 @@ evaporation-rate
 evaporation-rate
 0.0
 99.0
-80.0
+10.0
 1.0
 1
 NIL
@@ -1410,7 +1411,7 @@ polymorphism
 polymorphism
 0
 100
-15.0
+41.0
 1
 1
 NIL
@@ -1441,7 +1442,7 @@ SWITCH
 752
 death-mechanics
 death-mechanics
-0
+1
 1
 -1000
 
@@ -1539,7 +1540,7 @@ SWITCH
 642
 Scarce-Food
 Scarce-Food
-1
+0
 1
 -1000
 
@@ -1550,7 +1551,7 @@ SWITCH
 695
 Food-Growth
 Food-Growth
-1
+0
 1
 -1000
 
