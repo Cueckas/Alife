@@ -631,7 +631,7 @@ to go_group
         if color = red
         [ look-for-food-group
           ifelse leader?  = true
-          [set speed 0.90]
+          [set speed 0.]
           [if following? = false and nest? = false
             [set speed 1]
           ]
@@ -729,7 +729,7 @@ to follow-leader-group
   [look-for-food-group]
 
   ifelse is-turtle? leader and following? = true
-  [ if [color] of leader = orange + 1 and [leader?] of leader = false [
+  [ if [color] of leader = orange + 1 and [leader?] of leader = false and leader != nobody [
     set following? false
     face foodsource ]
 
